@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -12,16 +13,16 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-type Book struck {
+type Book struct {
 	gorm.Model
-	id_book	unit	`gorm:"primaryKey"`
+	id_book	uint	`gorm:"primaryKey"`
 	title	string
 	author	string
 	lang	string
 	status	string
 }
 
-var db *gorn.DB
+var db *gorm.DB
 var err error
 
 var (
@@ -31,27 +32,34 @@ var (
 	}
 )
 
+func GetBooks(w http.ResponseWriter, r *http.Request) {
+	var books []Book
+	db.Find(&books)
+	json.NewEncoder(w).Encode(&books)
+
+}
+
 func main() {
-	router := mux.Router()
+	router := mux.NewRouter()
 
 	db, err = gorm.Open("postgres", "host=localhost  port=5432 user=postgres dbname=book_db sslmode=disable password=example")
 
 	if err != nil {
-		log.Println("Problem with connecting database")
+		log.Println(fmt.Sprintf("%s", err))
 	}
 
 	defer db.Close()
 
 	db.AutoMigrate(&Book{})
 
-	for index := books {
+	for index := range books {
 		db.Create(&books[index])
 	}
 
-	router.HandleFunc("/books", GetBooks).Method("GET")
+	router.HandleFunc("/books", GetBooks).Methods("GET")
 
 	handler := cors.Default().Handler(router)
 
-	log.Fatal(http.ListenAndServe(":8081", handel))
+	log.Fatal(http.ListenAndServe(":8081", handler))
 
 }
